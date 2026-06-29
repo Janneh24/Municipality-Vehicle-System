@@ -1,0 +1,30 @@
+# Frontend dependencies
+frontend/node_modules/
+node_modules/
+.npm/
+
+# Angular cache
+frontend/.angular/
+.angular/
+
+# Backend compiled files
+backend/target/
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE / OS files
+.idea/
+.vscode/
+.settings/
+.classpath
+.project
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Distribution files
+.dist/

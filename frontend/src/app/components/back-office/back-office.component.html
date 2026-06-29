@@ -1,0 +1,75 @@
+<div class="back-office-container">
+    <h2>Back-Office Data Management</h2>
+
+    <div class="sections-grid">
+        <!-- Vehicle Types -->
+        <section class="admin-section">
+            <h3>Vehicle Types</h3>
+            <div class="add-form">
+                <input [(ngModel)]="newVehicleType" placeholder="New Vehicle Type (e.g. CAR)">
+                <button (click)="addVehicleType()" class="btn-primary">Add</button>
+            </div>
+            <ul class="data-list">
+                <li *ngFor="let item of vehicleTypes">
+                    {{item.name}}
+                    <button (click)="deleteVehicleType(item.id!)" class="btn-delete">×</button>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Engine Types -->
+        <section class="admin-section">
+            <h3>Engine Types</h3>
+            <div class="add-form">
+                <input [(ngModel)]="newEngineType" placeholder="New Engine Type (e.g. ELECTRIC)">
+                <button (click)="addEngineType()" class="btn-primary">Add</button>
+            </div>
+            <ul class="data-list">
+                <li *ngFor="let item of engineTypes">
+                    {{item.name}}
+                    <button (click)="deleteEngineType(item.id!)" class="btn-delete">×</button>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Districts -->
+        <section class="admin-section">
+            <h3>Districts (Florence)</h3>
+            <div class="add-form" style="display: flex; flex-direction: column; gap: 10px;">
+                <input [(ngModel)]="newDistrict" placeholder="District Name (e.g. D1)">
+                <textarea [(ngModel)]="newDistrictDescription" placeholder="Description (Characteristics/Neighborhoods)"
+                    class="form-control" style="height: 60px;"></textarea>
+                <button (click)="addDistrict()" class="btn btn-primary">Add District</button>
+            </div>
+            <ul class="data-list">
+                <li *ngFor="let item of districts"
+                    style="display: flex; flex-direction: column; align-items: flex-start; gap: 5px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <strong>{{item.name}}</strong>
+                        <button (click)="deleteDistrict(item.id!)" class="btn-delete">×</button>
+                    </div>
+                    <small style="color: #666;">{{item.description}}</small>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Parking Zones -->
+        <section class="admin-section">
+            <h3>Parking Zones</h3>
+            <div class="add-form">
+                <input [(ngModel)]="newZoneCode" placeholder="Zone Code (e.g. Z1)">
+                <select [(ngModel)]="newZoneDistrictId">
+                    <option [ngValue]="null">Select District</option>
+                    <option *ngFor="let d of districts" [ngValue]="d.id">{{d.name}}</option>
+                </select>
+                <button (click)="addZone()" class="btn-primary">Add</button>
+            </div>
+            <ul class="data-list">
+                <li *ngFor="let z of zones">
+                    {{z.code}} ({{z.districtName}})
+                    <button (click)="deleteZone(z.id!)" class="btn-delete">×</button>
+                </li>
+            </ul>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+<div class="card">
+    <div class="card-header">
+        <h2>Parking Passes</h2>
+        <button class="btn btn-primary" (click)="showPurchaseForm = !showPurchaseForm">
+            {{ showPurchaseForm ? 'Cancel' : 'Purchase New Pass' }}
+        </button>
+    </div>
+
+    <div *ngIf="showPurchaseForm" class="add-form">
+        <form [formGroup]="passForm" (ngSubmit)="onPurchase()">
+            <div class="form-group">
+                <label>Select Vehicles (Up to 4)</label>
+                <div *ngFor="let v of vehicles" class="checkbox-group">
+                    <input type="checkbox" [id]="v.licensePlate"
+                        [checked]="passForm.get('licensePlates')?.value.includes(v.licensePlate)"
+                        (change)="togglePlate(v.licensePlate)">
+                    <label [for]="v.licensePlate">{{ v.licensePlate }} - {{ v.model }}</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="zone">Zone</label>
+                <select id="zone" formControlName="zone" class="form-control">
+                    <option value="" disabled selected>Select zone</option>
+                    <option *ngFor="let z of zones" [value]="z.code">{{z.code}} ({{z.districtName}})</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success" [disabled]="passForm.invalid">Purchase</button>
+        </form>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>License Plate</th>
+                <th>Zone</th>
+                <th>Issue Date</th>
+                <th>Expiry Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let pass of passes">
+                <td>
+                    <div *ngFor="let lp of pass.licensePlates">{{ lp }}</div>
+                </td>
+                <td>{{ pass.zone }}</td>
+                <td>{{ pass.issueDate | date:'short' }}</td>
+                <td>{{ pass.expiryDate | date:'short' }}</td>
+                <td>
+                    <span [class.status-valid]="isValid(pass.expiryDate)"
+                        [class.status-expired]="!isValid(pass.expiryDate)">
+                        {{ isValid(pass.expiryDate) ? 'ACTIVE' : 'EXPIRED' }}
+                    </span>
+                </td>
+            </tr>
+            <tr *ngIf="passes.length === 0">
+                <td colspan="5" class="text-center">No parking passes found.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

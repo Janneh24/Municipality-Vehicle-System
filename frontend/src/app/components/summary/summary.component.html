@@ -1,0 +1,163 @@
+<header>
+    <h1>Welcome back, {{ currentUser?.fullName }}!</h1>
+</header>
+
+<div class="stats-grid"
+    *ngIf="currentUser?.role === 'CITIZEN' || currentUser?.role === 'ADMIN' || currentUser?.role === 'LAW_ENFORCEMENT'">
+    <header>
+        <h1>Summary</h1>
+        <div class="header-actions">
+            <button *ngIf="currentUser?.role === 'ADMIN'" (click)="exportPdf()" class="btn btn-success"
+                style="margin-right: 10px;">
+                Export PDF Report
+            </button>
+            <button *ngIf="currentUser?.role === 'LAW_ENFORCEMENT'" (click)="simulateViolation()"
+                class="btn btn-primary">
+                Report New Violation
+            </button>
+        </div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>{{ currentUser?.role === 'CITIZEN' ? 'My Registered Vehicles' : 'Total System Vehicles' }}</h3>
+            <div class="stat-value">{{ vehicleCount }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>{{ currentUser?.role === 'CITIZEN' ? 'My Active Passes' : 'Total Active Passes' }}</h3>
+            <div class="stat-value">{{ activePassCount }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Police Verification Tool -->
+<div class="verification-tool card" *ngIf="currentUser?.role === 'LAW_ENFORCEMENT'">
+    <h3>Enforcement: Verify Parking Pass</h3>
+    <div class="search-box">
+        <input type="text" [(ngModel)]="searchPlate" placeholder="Enter license plate (e.g. ABC-123)"
+            class="form-control">
+        <button (click)="checkPassValidity()" class="btn btn-primary">Verify</button>
+    </div>
+    <div class="search-result" *ngIf="searchResult">
+        <div [class]="'badge ' + (searchResult.status === 'VALID' ? 'badge-success' : 'badge-danger')">
+            {{ searchResult.status }}
+        </div>
+        <p *ngIf="searchResult.status === 'VALID'">Expires: {{ searchResult.expiryDate | date:'medium' }}</p>
+    </div>
+</div>
+
+<div class="recent-activity card" *ngIf="currentUser?.role === 'CITIZEN'">
+    <div class="citizen-lists" style="margin-top: 20px;">
+        <h3>My Registered Vehicles</h3>
+        <table class="table" *ngIf="myVehicles.length > 0">
+            <thead>
+                <tr>
+                    <th>Plate</th>
+                    <th>Model</th>
+                    <th>Color</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let v of myVehicles">
+                    <td>{{ v.licensePlate }}</td>
+                    <td>{{ v.model }}</td>
+                    <td>{{ v.color }}</td>
+                    <td>{{ v.vehicleType }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p *ngIf="myVehicles.length === 0" class="no-data">No vehicles registered yet.</p>
+
+        <h3 style="margin-top: 20px;">My Active Passes</h3>
+        <table class="table" *ngIf="myPasses.length > 0">
+            <thead>
+                <tr>
+                    <th>Zone</th>
+                    <th>Plates</th>
+                    <th>Expiry</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let p of myPasses">
+                    <td>{{ p.zone }}</td>
+                    <td>{{ p.licensePlates.join(', ') }}</td>
+                    <td>{{ p.expiryDate | date:'short' }}</td>
+                    <td>
+                        <span [class]="'badge ' + (isPassValid(p) ? 'badge-success' : 'badge-danger')">
+                            {{ isPassValid(p) ? 'VALID' : 'EXPIRED' }}
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p *ngIf="myPasses.length === 0" class="no-data">No parking passes found.</p>
+
+        <h3 style="margin-top: 20px;">My Parking Violations</h3>
+        <table class="table" *ngIf="myViolations.length > 0">
+            <thead>
+                <tr>
+                    <th>Plate</th>
+                    <th>District</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let v of myViolations">
+                    <td>{{ v.licensePlate }}</td>
+                    <td>{{ v.district }}</td>
+                    <td>{{ v.vehicleType }}</td>
+                    <td>{{ v.timestamp | date:'short' }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p *ngIf="myViolations.length === 0" class="no-data">No violations recorded for your vehicles. Good job!</p>
+    </div>
+</div>
+
+<div *ngIf="currentUser?.role === 'ADMIN' || currentUser?.role === 'LAW_ENFORCEMENT'" class="report-section card">
+    <div class="report-header">
+        <h3>System Statistics: Parking Violations</h3>
+        <div class="report-controls">
+            <div class="control-group">
+                <label>Period:</label>
+                <select [(ngModel)]="selectedPeriod" (change)="onReportParamsChange()">
+                    <option value="all">All Time</option>
+                    <option value="day">Last 24h</option>
+                    <option value="week">Last Week</option>
+                    <option value="month">Last Month</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Group By:</label>
+                <select [(ngModel)]="selectedGroupBy" (change)="onReportParamsChange()">
+                    <option value="district">District</option>
+                    <option value="vehicleType">Vehicle Type</option>
+                    <option value="engineType">Engine Type</option>
+                    <option value="type_and_engine">Type & Engine</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="report-content">
+        <table class="table" *ngIf="violationReport && (violationReport | keyvalue).length > 0">
+            <thead>
+                <tr>
+                    <th>{{ selectedGroupBy | titlecase }}</th>
+                    <th>Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of violationReport | keyvalue">
+                    <td>{{ item.key }}</td>
+                    <td>{{ item.value }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <p *ngIf="!violationReport || (violationReport | keyvalue).length === 0" class="no-data">
+            No violations found for the selected criteria.
+        </p>
+    </div>
+</div>
